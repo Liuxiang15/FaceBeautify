@@ -134,16 +134,20 @@ def whiteFace(src, alpha, beta):
     return src
 
 def getGuassionArray(size, sigma):
+    PI = 3.141592654
     spaces = [[0.0 for col in range(size)] for row in range(size)]
     GuassionArray = np.array(spaces)
-    center = size/2
+    center = int(size/2)        #注意这里要取整
+    print(center)
     sum = 0.0
     for i in range(size):
-        icenterSquare = ((i-center)*(i-center)
+        x2 = (i-center)*(i-center)
         for j in range(size):
-
-            GuassionArray[i][j] = math.exp(-(icenterSquare+(j-center)*(j-center))/(2*sigma*sigma))
-            sum += GuassionArray[i][j]
+            y2 = (j-center)*(j-center)
+            g = math.exp(-(x2+y2)/(2*sigma*sigma))
+            g /= 2*PI*sigma*sigma
+            sum += g
+            GuassionArray[i][j] = g
 
     for i in range(size):
         for j in range(size):
@@ -154,17 +158,16 @@ def myGaussianFilter(src, size,sigma):
     tmp = deepcopy(src)
     GuassionArray = getGuassionArray(size,sigma)
     rows, cols, channel = src.shape
+    print(rows, cols, channel)
     for i in range(rows):
+        print("外层循环"+str(i))
         for j in range(cols):
             if i-1>0 and i+1<rows and j-1>0 and j+1<cols:
-                tmp[i][j][0] = 0
-                tmp[i][j][1] = 0
-                tmp[i][j][2] = 0
-                for x in range(3):
-                    for y in range(3):
-                        tmp[i][j][0] += GuassionArray[x][y] * src[i + 1 - x][j + 1 - y][0]
-                        tmp[i][j][1] += GuassionArray[x][y] * src[i + 1 - x][j + 1 - y][1]
-                        tmp[i][j][2] += GuassionArray[x][y] * src[i + 1 - x][j + 1 - y][2]
+                tmp[i][j][0] = tmp[i][j][1] = tmp[i][j][2] = 0
+                for x in range(size):
+                    for y in range(size):
+                        for k in range(3):
+                            tmp[i][j][k] += GuassionArray[x][y] * src[i + 1 - x][j + 1 - y][k]
     return tmp
 
 def main():
@@ -175,24 +178,25 @@ def main():
 
     dst = deepcopy(src)
     whiteDst = whiteFace(dst, 1.1, 30)
-    # GuassionArray = getGuassionArray(3,1.5)
+    # GuassionArray = getGuassionArray(3,0.8)
+    # print(GuassionArray)
     # print(GuassionArray)
     # dst = myBialteralFilter(src,dst, 25,12.5,50)
-    myGuassionPic = myGaussianFilter(whiteDst, 5, 0.5)
+    myGuassionPic = myGaussianFilter(whiteDst, 9, 5)
     cv2.imshow('myGuassionPic_1', myGuassionPic)
+    #
+    # myGuassionPic = myGaussianFilter(whiteDst, 5, 1.1)
+    # cv2.imshow('myGuassionPic_2', myGuassionPic)
+    #
+    # myGuassionPic = myGaussianFilter(whiteDst, 5, 10)
+    # cv2.imshow('myGuassionPic_3', myGuassionPic)
+    #
+    # myGuassionPic = myGaussianFilter(whiteDst, 5, 30)
+    # cv2.imshow('myGuassionPic_4', myGuassionPic)
 
-    myGuassionPic = myGaussianFilter(whiteDst, 5, 1.1)
-    cv2.imshow('myGuassionPic_2', myGuassionPic)
 
-    myGuassionPic = myGaussianFilter(whiteDst, 5, 10)
-    cv2.imshow('myGuassionPic_3', myGuassionPic)
-
-    myGuassionPic = myGaussianFilter(whiteDst, 5, 30)
-    cv2.imshow('myGuassionPic_4', myGuassionPic)
-
-
-    # GaussianBlurPic = cv2.GaussianBlur(whiteDst,(9,9),5)
-    # cv2.imshow('GaussianBlurPic', GaussianBlurPic)
+    GaussianBlurPic = cv2.GaussianBlur(whiteDst,(9,9),5)
+    cv2.imshow('GaussianBlurPic', GaussianBlurPic)
 
 
 
